@@ -2,12 +2,12 @@
   "name": "crud-api",
   "version": "1.0.0",
   "description": "project for RSS NODE 2022 Q4",
-  "main": "index.js",
+  "main": "server.js",
   "type": "module",
   "scripts": {
-    "dev": "npx nodemon",
+    "start:dev": "npx nodemon",
     "build": "npx tsc",
-    "start": "npm run build && node build/main",
+    "start:prod": "npm run build && node build/server",
     "lint": "npx eslint ./src",
     "format": "npx eslint ./src --fix"
   },
@@ -15,6 +15,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^18.11.17",
+    "@types/uuid": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.47.0",
     "eslint": "^8.30.0",
