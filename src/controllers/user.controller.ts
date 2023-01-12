@@ -27,9 +27,7 @@ export class UserController {
   update(user: { id: string; username: string; age: number; hobbies: Array<string> }) {
     this.validator.validate(this.model, user);
     this.find(user.id);
-    if (!this.repository.update(user)) {
-      throw new CrudError(INTERNAL_ERROR_MESSAGE, INTERNAL_ERROR_STATUS_CODE);
-    }
+    return this.repository.update(user);
   }
 
   delete(id: string) {

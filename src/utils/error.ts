@@ -11,6 +11,6 @@ export class CrudError extends Error {
 
 export class ValidationError extends CrudError {
   constructor(key: string, reason: string) {
-    super(`${key} must be ${reason}`, BAD_REQUEST_STATUS_CODE);
+    super(`"${key}" ${reason}`, BAD_REQUEST_STATUS_CODE);
   }
 }

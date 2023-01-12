@@ -1,6 +1,7 @@
 import { UserController } from '../controllers/user.controller.js';
 import {
   CREATE_STATUS_CODE,
+  DELETE_MESSAGE,
   DELETE_STATUS_CODE,
   INTERNAL_ERROR_MESSAGE,
   INTERNAL_ERROR_STATUS_CODE,
@@ -17,51 +18,63 @@ export class UserService {
 
   private async getBody(req: any): Promise<any> {
     return new Promise((resolve, reject) => {
-      let data = '';
-      req.on('data', (chunck: string) => {
-        data += chunck;
-      });
-      req.on('end', () => resolve(JSON.parse(data.toString())));
-      req.on('error', reject);
+      try {
+        let data = '';
+        req.on('data', (chunck: string) => {
+          data += chunck;
+        });
+        req.on('end', () => resolve(data.toString()));
+        req.on('error', reject);
+      } catch (err) {
+        new CrudError(INTERNAL_ERROR_MESSAGE, INTERNAL_ERROR_STATUS_CODE);
+      }
     });
   }
 
   getAll(req: any, res: any) {
     res.statusCode = OK_STATUS_CODE;
-    res.write(JSON.stringify(this.controller.findAll()));
+    res.write(JSON.stringify({ response: this.controller.findAll() }));
   }
 
   get(req: any, res: any) {
     res.statusCode = OK_STATUS_CODE;
-    res.write(JSON.stringify(this.controller.find(this.parseId(req.url))));
+    res.write(JSON.stringify({ response: this.controller.find(this.parseId(req.url)) }));
   }
 
   async put(req: any, res: any) {
-    const userInfo = await this.getBody(req);
-    this.controller.update({
+    const userInfo = JSON.parse(await this.getBody(req));
+    const user = this.controller.update({
       id: this.parseId(req.url),
       username: userInfo.username,
       age: userInfo.age,
       hobbies: userInfo.hobbies,
     });
     res.statusCode = OK_STATUS_CODE;
+    if (user) {
+      res.write(JSON.stringify({ response: user }));
+    } else {
+      throw new CrudError(INTERNAL_ERROR_MESSAGE, INTERNAL_ERROR_STATUS_CODE);
+    }
   }
 
   async post(req: any, res: any) {
-    const userInfo = await this.getBody(req);
+    const userInfo = JSON.parse(await this.getBody(req));
     const user = this.controller.create({
       username: userInfo.username,
       age: userInfo.age,
       hobbies: userInfo.hobbies,
     });
     res.statusCode = CREATE_STATUS_CODE;
-    if (user) res.write(JSON.stringify(user));
-    else throw new CrudError(INTERNAL_ERROR_MESSAGE, INTERNAL_ERROR_STATUS_CODE);
+    if (user) {
+      res.write(JSON.stringify({ response: user }));
+    } else {
+      throw new CrudError(INTERNAL_ERROR_MESSAGE, INTERNAL_ERROR_STATUS_CODE);
+    }
   }
 
   delete(req: any, res: any) {
-    res.statusCode = DELETE_STATUS_CODE;
     this.controller.delete(this.parseId(req.url));
+    res.statusCode = DELETE_STATUS_CODE;
   }
 
   parseId(url: string) {

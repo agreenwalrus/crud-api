@@ -1,5 +1,4 @@
 import http from 'http';
-import dotenv from 'dotenv';
 import { CrudError } from './utils/error.js';
 import {
   INTERNAL_ERROR_MESSAGE,
@@ -11,9 +10,9 @@ import {
 import { UserController } from './controllers/user.controller.js';
 import { UserRepository } from './repositories/user.repository.js';
 import { UserService } from './service/user.service.js';
+import { PORT } from './config.js';
 
-dotenv.config();
-const server = http.createServer(async (req, res) => {
+export const server = http.createServer(async (req, res) => {
   try {
     const service = new UserService(new UserController(new UserRepository()));
     const [hostName, path, id, ...other] = req.url?.substring(1).split('/') ?? [];
@@ -43,18 +42,21 @@ const server = http.createServer(async (req, res) => {
         break;
     }
   } catch (err) {
+    let message = '';
+    let details = '';
     if (err instanceof CrudError) {
       res.statusCode = err.code;
-      res.write(`${err.message}\n${err.stack}`);
+      message = `${err.message}`;
     } else if (err instanceof Error) {
       res.statusCode = INTERNAL_ERROR_STATUS_CODE;
-      res.write(`${INTERNAL_ERROR_MESSAGE}\n${err.message}\n${err.stack}`);
+      message = `${INTERNAL_ERROR_MESSAGE}\n${err.message}`;
+      details = err.stack || '';
     }
+    const error = { error: { code: res.statusCode, message: message, details: details } };
+    res.write(JSON.stringify(error));
   } finally {
     res.end();
   }
 });
-
-const PORT = process.env.PORT;
 
 server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

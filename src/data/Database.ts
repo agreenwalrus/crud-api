@@ -27,11 +27,11 @@ class Database {
     return true;
   }
 
-  update(user: User): boolean {
+  update(user: User) {
     const updatedIndex = this._getIndex(user.id);
     if (updatedIndex === -1) return false;
     this._users[updatedIndex] = user;
-    return true;
+    return user;
   }
 
   private _getIndex(id: string) {

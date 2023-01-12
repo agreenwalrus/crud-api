@@ -8,7 +8,8 @@ export const INTERNAL_ERROR_STATUS_CODE = 500;
 export const INTERNAL_ERROR_MESSAGE = 'Something went wrong!';
 export const NOT_FOUND_ERROR_MESSAGE = "Oops! We can't find this resource.";
 export const UUID_VALIDATION_ERROR_MESSAGE = 'UUID validation is failed. Please, use UUID v4.';
+export const DELETE_MESSAGE = 'Deleted successfully!';
 
-export const VALIDATION_REQUIRED = 'required';
-export const VALIDATION_TYPE = 'type of';
-export const VALIDATION_MASK = 'corrected';
+export const VALIDATION_REQUIRED = 'is required property';
+export const VALIDATION_TYPE = 'is type of';
+export const VALIDATION_MASK = 'must be in the format of uuid v4';
