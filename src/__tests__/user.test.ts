@@ -1,20 +1,12 @@
 import { expect } from 'chai';
+import chai from 'chai';
+import chaiHttp from 'chai-http';
+
 import fetch from 'node-fetch';
-import { PORT } from '../config.js';
-import { User } from '../entity/user.js';
 import { BAD_REQUEST_STATUS_CODE, INTERNAL_ERROR_MESSAGE, NOT_FOUND_ERROR_CODE } from '../utils/constats.js';
+import { server } from '../server.js';
 
-async function sendData(url: string, method: string, data = {}) {
-  const response = await fetch(url, {
-    method: method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    ...(method !== 'GET' && { body: JSON.stringify(data) }),
-  });
-
-  return response;
-}
+chai.use(chaiHttp);
 
 describe('API user', () => {
   let testUser = {
@@ -23,7 +15,7 @@ describe('API user', () => {
     hobbies: ['anime'],
   };
 
-  let createdUser: User;
+  let createdUser: any;
 
   let updatedUser = {
     username: 'Steave',
@@ -32,44 +24,69 @@ describe('API user', () => {
   };
 
   it('test GET: get all users. No users are expected', async () => {
-    const response: any = await sendData(`http://127.0.0.1:${PORT}/api/user`, 'GET');
-    const body = await response.json();
-
-    expect(response.status).to.equal(200);
-    expect(body.response).to.be.length(0);
+    chai
+      .request(server)
+      .get('/api/user')
+      .end((err, res) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(200);
+        expect(res.body.response).to.be.length(0);
+      });
   });
 
   it('test POST: create new user', async () => {
-    const response: any = await sendData(`http://127.0.0.1:${PORT}/api/user`, 'POST', testUser);
-    createdUser = await response.json().then((r: any) => r.response);
-
-    expect(response.status).to.equal(201);
-    expect(createdUser).to.deep.include(testUser);
+    chai
+      .request(server)
+      .post('/api/user')
+      .send(testUser)
+      .end((err, res) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(201);
+        createdUser = res.body.response;
+        expect(createdUser).to.deep.include(testUser);
+        expect(createdUser.username).to.deep.equal(testUser.username);
+        expect(createdUser.age).to.deep.equal(testUser.age);
+        expect(createdUser.hobbies).to.deep.equal(testUser.hobbies);
+      });
   });
 
   it('test GET: get specific user', async () => {
-    const response: any = await sendData(`http://127.0.0.1:${PORT}/api/user/${createdUser.id}`, 'GET');
-    const body = await response.json();
-
-    expect(response.status).to.equal(200);
-    expect(body.response).to.deep.include(createdUser);
+    chai
+      .request(server)
+      .get(`/api/user/${createdUser.id}`)
+      .end((err, res) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(200);
+        expect(res.body.response).to.deep.equal(createdUser);
+      });
   });
 
   it('test PUT: update user', async () => {
-    const response: any = await sendData(`http://127.0.0.1:${PORT}/api/user/${createdUser.id}`, 'PUT', updatedUser);
-    const body = await response.json();
-
-    expect(response.status).to.equal(200);
-    expect(body.response).to.deep.include({ id: createdUser.id, ...updatedUser });
+    chai
+      .request(server)
+      .put(`/api/user/${createdUser.id}`)
+      .send(updatedUser)
+      .end((err, res) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(200);
+        const resUser = res.body.response;
+        expect(resUser).to.deep.include(updatedUser);
+        expect(resUser.username).to.deep.equal(updatedUser.username);
+        expect(resUser.age).to.deep.equal(updatedUser.age);
+        expect(resUser.hobbies).to.deep.equal(updatedUser.hobbies);
+      });
   });
 
   it('test DELETE: pass wrong id', async () => {
-    const response: any = await sendData(`http://127.0.0.1:${PORT}/api/user/wrong_id`, 'DELETE');
-    const body = await response.json();
-
-    expect(response.status).to.equal(400);
-    expect(body).to.be.deep.equal({
-      error: { code: BAD_REQUEST_STATUS_CODE, message: '"id" must be in the format of uuid v4', details: '' },
-    });
+    chai
+      .request(server)
+      .delete('/api/user/wrong_id')
+      .end((err, res) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(400);
+        expect(res.body).to.deep.equal({
+          error: { code: BAD_REQUEST_STATUS_CODE, message: '"id" must be in the format of uuid v4', details: '' },
+        });
+      });
   });
 });
