@@ -1,3 +1,5 @@
+export const DEFAULT_PORT = 3000;
+
 export const OK_STATUS_CODE = 200;
 export const CREATE_STATUS_CODE = 201;
 export const DELETE_STATUS_CODE = 204;
